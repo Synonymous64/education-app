@@ -1,21 +1,55 @@
-import { View, Text, Image, StyleSheet } from 'react-native'
-import React from 'react'
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { AntDesign } from '@expo/vector-icons';
 import Colors from '../Shared/Colors';
 
 export default function Login() {
+    WebBrowser.maybeCompleteAuthSession();
+    const [accessToken, setAccessToken] = useState();
+    const [userInfo, setUserInfo] = useState();
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        androidClientId: '809331706150-ukgb615oju681ffta9b0jonisr3hf1nh.apps.googleusercontent.com',
+        expoClientId: '809331706150-jrchcb7aeslbjdgmlj25kj5thg7d96ds.apps.googleusercontent.com'
+    });
+
+    useEffect(() => {
+        if (response?.type == 'success') {
+            setAccessToken(response.authentication.accessToken);
+            console.log(response.authentication.accessToken);
+            getUserData();
+        }
+    }, [response])
+
+    const getUserData = async () => {
+        try {
+            const response = await fetch(
+                "https://www.googleapis.com/userinfo/v2/me",
+                {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                }
+            );
+
+            const user = await response.json();
+            setUserInfo(user);
+            console.log("User Details", user);
+        } catch (error) {
+            // Add your own error handler here
+        }
+    };
     return (
         <View>
             <Image source={require('../Assets/Images/login.png')} />
             <View style={styles.container}>
                 <Text style={styles.welcomeText}>Welcome to EduApp</Text>
                 <Text style={{ textAlign: 'center', marginTop: 80, fontSize: 20 }}>Login/Signup</Text>
-                <View style={styles.button}>
+                <TouchableOpacity style={styles.button}
+                    onPress={() => promptAsync()}
+                >
                     <AntDesign name="googleplus" size={24} color="white" style={{ marginRight: 10 }} />
                     <Text style={{ color: Colors.white }}>Sign in with Google</Text>
-                </View>
+                </TouchableOpacity>
             </View>
         </View>
     );
