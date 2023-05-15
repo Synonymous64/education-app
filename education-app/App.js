@@ -22,6 +22,7 @@ export default function App() {
       <AuthContext.Provider value={{ userData, setUserData }}>
         {userData ? <Home /> : <Login />}
       </AuthContext.Provider>
+      {/* <StatusBar/> */}
     </View>
   );
 }
